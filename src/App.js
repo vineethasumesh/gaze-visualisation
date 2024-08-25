@@ -1,25 +1,23 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import FileUpload from './components/FileUpload';
+import GazeVisualisation from './components/GazeVisualisation';
+import { parseCSV } from './utils/parseCSV';
 
-function App() {
+const App = () => {
+  const [data, setData] = useState([]);
+
+  const handleFileUpload = (file) => {
+    parseCSV(file, setData);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Gaze Data Visualization</h1>
+      <FileUpload onFileUpload={handleFileUpload} />
+      <GazeVisualisation data={data} />
     </div>
   );
-}
+};
 
 export default App;
+

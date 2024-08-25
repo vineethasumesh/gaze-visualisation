@@ -1,43 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<head>
+    <meta charset="UTF-8">
+    <title>2D & 3D Scatter Plot Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        /* body {
+            font-family: Arial, sans-serif;
+        }
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+        .chart {
+            display: block;
+            margin: 20px 0;
+        }
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+        #scatterPlot {
+            width: 800px;
+            height: 500px;
+        }
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+        #threeDPlot {
+            width: 800px;
+            height: 500px;
+        } */
+        body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+h1, h3 {
+    color: #2c3e50;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+h3 {
+    font-size: 1.2em;
+    font-weight: normal;
+    margin-bottom: 30px;
+}
+
+p {
+    font-size: 1em;
+    line-height: 1.6em;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+input[type="file"] {
+    display: block;
+    margin: 0 auto 20px auto;
+    padding: 10px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.chart {
+    display: block;
+    margin: 20px auto;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#scatterPlot {
+    width: 100%;
+    height: 500px;
+}
+
+#threeDPlot {
+    width: 100%;
+    height: 500px;
+    margin-top: 30px;
+    background: #e1e8f0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+svg text, svg line {
+    font-size: 12px;
+    fill: #333;
+}
+
+svg path {
+    stroke: #888;
+    stroke-width: 1;
+}
+
+svg circle {
+    fill: #69b3a2;
+}
+
+@media (max-width: 900px) {
+    #scatterPlot, #threeDPlot {
+        width: 100%;
+        height: 300px;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    h3 {
+        font-size: 1em;
+    }
+
+    input[type="file"] {
+        width: 90%;
+        margin-bottom: 15px;
+    }
+}
+
+    </style>
+</head>
+<body>
+<h1>Gaze Data Visualization</h1>
+<h3>Gaze data visualization involves the graphical representation of eye-tracking data to understand where, when, and how users look at different areas of a visual scene</h3>
+<p>This tool allows you to visualize gaze data through both a 2D scatter plot and a 3D point cloud. Upload your CSV file, and the data will be rendered in both representations below.</p>
+<input type="file" id="upload" accept=".csv">
+<svg id="scatterPlot" class="chart">2D Representation-Scatter Plot</svg>
+<p>The 2D scatter plot provides a flat representation of gaze data using X and Y coordinates. Each point on the graph represents a single data point, plotted according to its X and Y values.</p>
+<div id="threeDPlot">3D Representation</div>
+<p>The 3D visualization color-codes each point based on the duration of gaze in milliseconds, with blue indicating shorter durations and red representing longer durations, allowing for quick insights into where users focused their attention the most. You can rotate, zoom, and pan around the 3D space to explore the spatial relationships between data points.</p>
+<script>
+    document.getElementById('upload').addEventListener('change', function (e) {
+        var file = e.target.files[0];
+
+        if (file) {
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: true,
+                complete: function (results) {
+                    var data = results.data;
+                    render2DScatterPlot(data);
+                    render3DScatterPlot(data);
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+    });
+
+    function render2DScatterPlot(data) {
+        var scatterPlot = d3.select('#scatterPlot');
+        scatterPlot.selectAll('*').remove(); // Clear previous plot content
+
+        var xKey = 'Centroid_X';
+        var yKey = 'Centroid_Y';
+
+        var margin = {top: 20, right: 30, bottom: 40, left: 40};
+        var width = 800 - margin.left - margin.right;
+        var height = 500 - margin.top - margin.bottom;
+
+        var x = d3.scaleLinear()
+            .domain(d3.extent(data, function (d) { return d[xKey]; }))
+            .nice()
+            .range([0, width]);
+
+        var y = d3.scaleLinear()
+            .domain(d3.extent(data, function (d) { return d[yKey]; }))
+            .nice()
+            .range([height, 0]);
+
+        var svg = scatterPlot
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+        svg.append("g")
+            .call(d3.axisLeft(y));
+
+        svg.append("g")
+            .selectAll("dot")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) { return x(d[xKey]); })
+            .attr("cy", function (d) { return y(d[yKey]); })
+            .attr("r", 3)
+            .style("fill", "#69b3a2");
+    }
+
+    function render3DScatterPlot(data) {
+        var container = document.getElementById('threeDPlot');
+        container.innerHTML = ''; // Clear previous plot
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        var geometry = new THREE.BufferGeometry();
+        var vertices = [];
+        var colors = [];
+
+        // Find the minimum and maximum values for duration_ms for scaling
+        var durationExtent = d3.extent(data, function(d) { return d.duration_ms; });
+
+        data.forEach(function (row) {
+            if (row.Centroid_X !== undefined && row.Centroid_Y !== undefined && row.Centroid_Z !== undefined) {
+                vertices.push(row.Centroid_X, row.Centroid_Y, row.Centroid_Z);
+
+                // Normalize the duration_ms for color mapping
+                var normalizedDuration = (row.duration_ms - durationExtent[0]) / (durationExtent[1] - durationExtent[0]);
+
+                // Use normalizedDuration to create a color gradient
+                var color = new THREE.Color();
+                color.setHSL(0.7 - normalizedDuration * 0.7, 1.0, 0.5); // Blue to Red gradient
+                colors.push(color.r, color.g, color.b);
+            }
+        });
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+        var material = new THREE.PointsMaterial({size: 5, vertexColors: true});
+        var points = new THREE.Points(geometry, material);
+        scene.add(points);
+
+        camera.position.z = 100;
+        controls.update();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    }
+</script>
+</body>
 </html>
