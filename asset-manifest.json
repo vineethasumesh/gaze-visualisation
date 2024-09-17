@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/gaze-visualisation/static/css/main.fe576db8.css",
+    "main.js": "/gaze-visualisation/static/js/main.76befe22.js",
+    "static/js/453.26d74bde.chunk.js": "/gaze-visualisation/static/js/453.26d74bde.chunk.js",
+    "index.html": "/gaze-visualisation/index.html",
+    "main.fe576db8.css.map": "/gaze-visualisation/static/css/main.fe576db8.css.map",
+    "main.76befe22.js.map": "/gaze-visualisation/static/js/main.76befe22.js.map",
+    "453.26d74bde.chunk.js.map": "/gaze-visualisation/static/js/453.26d74bde.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.fe576db8.css",
+    "static/js/main.76befe22.js"
+  ]
+}
